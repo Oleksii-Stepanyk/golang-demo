@@ -1,6 +1,4 @@
 #!/bin/bash
-export TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" -s)
-export PUBLIC_IP=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169.254.169.254/latest/meta-data/public-ipv4)
 
 sudo apt update -y
 sudo apt install -y git
@@ -22,7 +20,7 @@ sudo rm /etc/nginx/sites-available/default
 cat << 'NGINX_CONF' | sudo tee /etc/nginx/sites-available/default
 server {
     listen       80;
-    server_name  "$PUBLIC_IP";
+    server_name  localhost;
 
     location / {
         proxy_pass         http://localhost:8080;
