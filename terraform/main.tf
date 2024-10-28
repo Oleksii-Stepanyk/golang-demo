@@ -123,6 +123,24 @@ resource "aws_security_group" "rds-sg" {
   }
 }
 
+resource "aws_security_group" "alb_sg" {
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
 resource "aws_db_parameter_group" "rds-pg" {
   name   = "rds-param-group"
   family = "postgres16"
@@ -162,13 +180,14 @@ resource "aws_db_instance" "main-db" {
 }
 
 resource "aws_instance" "task" {
+  count = 2
   availability_zone           = "eu-north-1a"
-  instance_type               = "t3.micro"
+  instance_type               = var.instance_type
   vpc_security_group_ids      = [aws_security_group.ec2_sg.id]
   subnet_id                   = aws_subnet.subnet1.id
   associate_public_ip_address = true
-  key_name                    = "myssh"
-  ami                         = "ami-0bcf98c2c6db6c5f4"
+  key_name                    = var.sshkey
+  ami                         = var.ami_id
   user_data = templatefile("${path.module}/script.sh", {
     rds_addr      = aws_db_instance.main-db.address,
     rds_endpoint  = aws_db_instance.main-db.endpoint
@@ -176,6 +195,38 @@ resource "aws_instance" "task" {
 
   user_data_replace_on_change = true
   tags = {
-    Name = "main-instance"
+    Name = var.ec2_name
+  }
+}
+
+resource "aws_lb" "golang_alb" {
+  name               = "golang-alb"
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.alb_sg.id]
+  subnets            = [aws_subnet.subnet1.id, aws_subnet.subnet2.id, aws_subnet.subnet3.id]
+}
+
+resource "aws_lb_target_group" "golang_tg" {
+  name     = "golang-tg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.main.id
+}
+
+resource "aws_lb_target_group_attachment" "golang-ga" {
+  count            = 2
+  target_group_arn = aws_lb_target_group.golang_tg.arn
+  target_id        = aws_instance.task[count.index].id
+  port             = 80
+}
+
+resource "aws_lb_listener" "golang-listener" {
+  load_balancer_arn = aws_lb.golang_alb.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.golang_tg.arn
   }
 }
