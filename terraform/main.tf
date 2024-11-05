@@ -179,21 +179,16 @@ resource "aws_db_instance" "main-db" {
   }
 }
 
-resource "aws_instance" "task" {
-  count = 2
-  availability_zone           = "eu-north-1a"
+resource "aws_launch_template" "task" {
   instance_type               = var.instance_type
   vpc_security_group_ids      = [aws_security_group.ec2_sg.id]
-  subnet_id                   = aws_subnet.subnet1.id
-  associate_public_ip_address = true
   key_name                    = var.sshkey
-  ami                         = var.ami_id
-  user_data = templatefile("${path.module}/script.sh", {
+  image_id                    = var.ami_id
+  user_data = base64encode(templatefile("${path.module}/script.sh", {
     rds_addr      = aws_db_instance.main-db.address,
     rds_endpoint  = aws_db_instance.main-db.endpoint
-  })
+  }))
 
-  user_data_replace_on_change = true
   tags = {
     Name = var.ec2_name
   }
@@ -213,13 +208,6 @@ resource "aws_lb_target_group" "golang_tg" {
   vpc_id   = aws_vpc.main.id
 }
 
-resource "aws_lb_target_group_attachment" "golang-ga" {
-  count            = 2
-  target_group_arn = aws_lb_target_group.golang_tg.arn
-  target_id        = aws_instance.task[count.index].id
-  port             = 80
-}
-
 resource "aws_lb_listener" "golang-listener" {
   load_balancer_arn = aws_lb.golang_alb.arn
   port              = "80"
@@ -228,5 +216,18 @@ resource "aws_lb_listener" "golang-listener" {
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.golang_tg.arn
+  }
+}
+
+resource "aws_autoscaling_group" "aws_as" {
+  name_prefix = "task-autoscale"
+  min_size = 1
+  desired_capacity = 1
+  max_size = 2
+  target_group_arns = [aws_lb_target_group.golang_tg.arn]
+  vpc_zone_identifier = [aws_subnet.subnet1.id, aws_subnet.subnet2.id, aws_subnet.subnet3.id]
+  launch_template {
+    id = aws_launch_template.task.id
+    version = "$Latest"
   }
 }
