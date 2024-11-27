@@ -1,0 +1,25 @@
+
+golangApp:
+  name: golang-app
+  image: ostepanyk/golang-demo
+  port: 8080
+  dbEnv:
+    DB_PORT: 5432
+    DB_USER: postgres
+    DB_PASSWORD: 1q2w3e4r
+
+postgres:
+  name: db
+  image: postgres:latest
+  port: 5432
+  username: postgres
+  password: 1q2w3e4r
+  pvcSize: 1Gi
+  schemaFile: db_schema.sql
+  configmapName: db-cm0
+
+nginx:
+  name: web
+  image: nginx:latest
+  port: 80
+  configmapName: web-cm0

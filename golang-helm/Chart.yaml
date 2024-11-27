@@ -1,0 +1,7 @@
+
+apiVersion: v2
+name: golang-demo
+description: A Helm chart for the golang-demo application
+type: application
+version: 0.1.1
+appVersion: "1.0.1"

@@ -1,0 +1,16 @@
+apiVersion: v1
+data:
+  db_schema.sql: |
+    CREATE DATABASE db;
+    \c db
+    CREATE TABLE IF NOT EXISTS videos (
+      id VARCHAR(255) NOT NULL,
+      title VARCHAR(255) NOT NULL
+    );
+kind: ConfigMap
+metadata:
+  annotations:
+    use-subpath: "true"
+  labels:
+    io.kompose.service: {{ .Values.postgres.name }}
+  name: {{ .Values.postgres.configmapName }}

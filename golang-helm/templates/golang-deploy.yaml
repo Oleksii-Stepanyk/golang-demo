@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: {{ .Values.golangApp.name }}
+  name: {{ .Values.golangApp.name }}
+spec:
+  selector:
+    matchLabels:
+      io.kompose.service: {{ .Values.golangApp.name }}
+  template:
+    metadata:
+      labels:
+        io.kompose.service: {{ .Values.golangApp.name }}
+    spec:
+      containers:
+        - args:
+            - ./golang-demo
+          env:
+            - name: DB_ENDPOINT
+              value: {{ .Values.postgres.name }}
+            - name: DB_NAME
+              value: db
+            - name: DB_PASSWORD
+              value: {{ .Values.golangApp.dbEnv.DB_PASSWORD }}
+            - name: DB_PORT
+              value: "{{ .Values.golangApp.dbEnv.DB_PORT }}"
+            - name: DB_USER
+              value: {{ .Values.golangApp.dbEnv.DB_USER }}
+          image: {{ .Values.golangApp.image }}
+          name: {{ .Values.golangApp.name }}
+          ports:
+            - containerPort: {{ .Values.golangApp.port }}
+              protocol: TCP
+      restartPolicy: Always

@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    io.kompose.service: {{ .Values.postgres.name }}
+  name: {{ .Values.postgres.name }}
+spec:
+  selector:
+    matchLabels:
+      io.kompose.service: {{ .Values.postgres.name }}
+  template:
+    metadata:
+      labels:
+        io.kompose.service: {{ .Values.postgres.name }}
+    spec:
+      containers:
+        - env:
+            - name: POSTGRES_PASSWORD
+              value: {{ .Values.postgres.password }}
+            - name: POSTGRES_USER
+              value: {{ .Values.postgres.username }}
+          image: {{ .Values.postgres.image }}
+          name: {{ .Values.postgres.name }}
+          ports:
+            - containerPort: {{ .Values.postgres.port }}
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /docker-entrypoint-initdb.d/db_schema.sql
+              name: {{ .Values.postgres.configmapName }}
+              subPath: {{ .Values.postgres.schemaFile }}
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-data-volume
+      restartPolicy: Always
+      volumes:
+        - configMap:
+            items:
+              - key: {{ .Values.postgres.schemaFile }}
+                path: {{ .Values.postgres.schemaFile }}
+            name: {{ .Values.postgres.configmapName }}
+          name: {{ .Values.postgres.configmapName }}
+        - name: postgres-data-volume
+          persistentVolumeClaim:
+            claimName: postgres-data-claim
