@@ -27,7 +27,9 @@ spec:
               value: "{{ .Values.golangApp.dbEnv.DB_PORT }}"
             - name: DB_USER
               value: {{ .Values.golangApp.dbEnv.DB_USER }}
-          image: {{ .Values.golangApp.image }}
+          image: 
+            repository: {{ .Values.golangApp.repository }}
+            tag: {{ .Values.golangApp.tag }}
           name: {{ .Values.golangApp.name }}
           ports:
             - containerPort: {{ .Values.golangApp.port }}

@@ -1,7 +1,8 @@
 
 golangApp:
   name: golang-app
-  image: ostepanyk/golang-demo
+  repository: ostepanyk/golang-demo
+  tag: latest
   port: 8080
   dbEnv:
     DB_PORT: 5432
