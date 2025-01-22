@@ -38,4 +38,4 @@ Folder `terraform` contains **.tf** files that create VPC with public subnets an
 Using [Kompose](https://kompose.io) translated `docker-compose.yml` to helm chart and refactored it.
 
 ### CI/CD
-I tried to create a pipeline, but didn't manage to do that.
+I tried to create a pipeline, but didn't manage to do that. But there is mine working pipeline at [this repo](https://github.com/Oleksii-Stepanyk/golang-demo)
