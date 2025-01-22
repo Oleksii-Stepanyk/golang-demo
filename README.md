@@ -26,3 +26,16 @@ curl "http://localhost:8080/videos"
 curl "http://localhost:8080/fibonacci?number=7"
 curl "http://localhost:8080/memory-leak"
 ```
+
+## DevOps Part
+### Docker
+Created `docker-compose.yml` for nginx proxy server, golang app and postgresql. Isolated .go files for docker image created from own `docker-image/Dockerfile`
+
+### Terraform
+Folder `terraform` contains **.tf** files that create VPC with public subnets and access to the Internet, security groups for EC2 and RDS, and parameter group for RDS, RDS and EC2 itself. Also, there is `script.sh` file that setups nginx proxy, golang app with **.service**, and postgresql.
+
+### Kubernetes
+Using [Kompose](https://kompose.io) translated `docker-compose.yml` to helm chart and refactored it.
+
+### CI/CD
+I tried to create a pipeline, but didn't manage to do that.
